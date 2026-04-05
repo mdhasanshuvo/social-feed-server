@@ -3,7 +3,7 @@ const Post = require('../models/Post');
 const ApiError = require('../utils/apiError');
 
 const feedSelect =
-  'author text image visibility createdAt likes comments.author comments.text comments.createdAt comments.likes comments.replies';
+  'author text image visibility createdAt likes comments._id comments.author comments.text comments.createdAt comments.likes comments.replies._id comments.replies.author comments.replies.text comments.replies.createdAt comments.replies.likes';
 
 const feedPopulate = [
   { path: 'author', select: 'firstName lastName email' },

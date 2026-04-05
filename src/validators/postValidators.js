@@ -4,7 +4,7 @@ const mongoIdParam = (name) => param(name).isMongoId().withMessage(`${name} must
 
 const createPostValidator = [
   body('text').trim().notEmpty().withMessage('Post text is required').isLength({ max: 3000 }),
-  body('image').optional().trim().isURL().withMessage('Image must be a valid URL'),
+  body('image').optional({ checkFalsy: true }).trim().isURL().withMessage('Image must be a valid URL'),
   body('visibility').optional().isIn(['public', 'private']).withMessage('Visibility must be public or private')
 ];
 
