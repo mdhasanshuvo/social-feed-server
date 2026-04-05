@@ -1,6 +1,7 @@
 const express = require('express');
 const postController = require('../controllers/postController');
 const authMiddleware = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const validate = require('../middleware/validate');
 const asyncHandler = require('../utils/asyncHandler');
 const {
@@ -50,6 +51,29 @@ router.get('/', asyncHandler(postController.getFeed));
  *         description: Post created
  */
 router.post('/', createPostValidator, validate, asyncHandler(postController.createPost));
+
+/**
+ * @swagger
+ * /api/posts/upload-image:
+ *   post:
+ *     summary: Upload an image for post creation
+ *     tags: [Posts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [image]
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image uploaded
+ */
+router.post('/upload-image', upload.single('image'), asyncHandler(postController.uploadPostImage));
 
 /**
  * @swagger

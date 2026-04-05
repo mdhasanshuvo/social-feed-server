@@ -1,4 +1,6 @@
 const postService = require('../services/postService');
+const uploadService = require('../services/uploadService');
+const ApiError = require('../utils/apiError');
 
 const getFeed = async (req, res) => {
   const data = await postService.getFeed(req.user._id);
@@ -40,6 +42,15 @@ const toggleReplyLike = async (req, res) => {
   return res.status(200).json({ success: true, message: `Reply ${data.action}`, data });
 };
 
+const uploadPostImage = async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, 'Image file is required');
+  }
+
+  const imageUrl = await uploadService.uploadImageBuffer(req.file.buffer);
+  return res.status(200).json({ success: true, message: 'Image uploaded', data: { imageUrl } });
+};
+
 module.exports = {
   getFeed,
   createPost,
@@ -47,5 +58,6 @@ module.exports = {
   addComment,
   toggleCommentLike,
   addReply,
-  toggleReplyLike
+  toggleReplyLike,
+  uploadPostImage
 };

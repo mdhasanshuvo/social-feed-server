@@ -14,6 +14,12 @@ const feedPopulate = [
   { path: 'comments.replies.likes.user', select: 'firstName lastName email' }
 ];
 
+const ensurePostInteractionAccess = (post, userId) => {
+  if (post.visibility === 'private' && post.author.toString() !== userId.toString()) {
+    throw new ApiError(403, 'This private post is not available for interaction');
+  }
+};
+
 const getFeed = async (currentUserId) => {
   return Post.find({
     $or: [{ visibility: 'public' }, { author: currentUserId }]
@@ -52,6 +58,8 @@ const togglePostLike = async (postId, userId) => {
     throw new ApiError(404, 'Post not found');
   }
 
+  ensurePostInteractionAccess(post, userId);
+
   const action = toggleUserLike(post.likes, userId);
   await post.save();
 
@@ -65,6 +73,8 @@ const addComment = async (postId, userId, text) => {
   if (!post) {
     throw new ApiError(404, 'Post not found');
   }
+
+  ensurePostInteractionAccess(post, userId);
 
   post.comments.push({ author: userId, text: xss(text), likes: [], replies: [] });
   await post.save();
@@ -80,6 +90,8 @@ const toggleCommentLike = async (postId, commentId, userId) => {
   if (!post) {
     throw new ApiError(404, 'Post not found');
   }
+
+  ensurePostInteractionAccess(post, userId);
 
   const comment = post.comments.id(commentId);
   if (!comment) {
@@ -98,6 +110,8 @@ const addReply = async (postId, commentId, userId, text) => {
   if (!post) {
     throw new ApiError(404, 'Post not found');
   }
+
+  ensurePostInteractionAccess(post, userId);
 
   const comment = post.comments.id(commentId);
   if (!comment) {
@@ -118,6 +132,8 @@ const toggleReplyLike = async (postId, commentId, replyId, userId) => {
   if (!post) {
     throw new ApiError(404, 'Post not found');
   }
+
+  ensurePostInteractionAccess(post, userId);
 
   const comment = post.comments.id(commentId);
   if (!comment) {
