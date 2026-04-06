@@ -4,8 +4,16 @@ const xss = require('xss');
 const User = require('../models/User');
 const ApiError = require('../utils/apiError');
 
+const cleanEnv = (value, fallback = '') => {
+  const raw = (value || fallback).toString();
+  return raw.replace(/[\r\n]/g, '').trim().replace(/^['"]|['"]$/g, '');
+};
+
+const jwtSecret = cleanEnv(process.env.JWT_SECRET, 'replace_with_a_strong_secret');
+const jwtExpiresIn = cleanEnv(process.env.JWT_EXPIRES_IN, '7d');
+
 const createToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
+  jwt.sign({ userId }, jwtSecret, { expiresIn: jwtExpiresIn });
 
 const register = async (payload) => {
   const firstName = xss(payload.firstName);

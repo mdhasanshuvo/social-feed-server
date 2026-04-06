@@ -9,8 +9,9 @@ const ApiError = require('./utils/apiError');
 const sanitizeRequest = require('./middleware/sanitize');
 
 const app = express();
+const clientOrigin = (process.env.CLIENT_ORIGIN || '*').replace(/[\r\n]/g, '').trim() || '*';
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
+app.use(cors({ origin: clientOrigin }));
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(sanitizeRequest);
