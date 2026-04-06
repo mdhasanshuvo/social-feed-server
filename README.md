@@ -1,82 +1,134 @@
 # Social Feed Server
 
-Production-ready Express + MongoDB backend for the Social Feed Application.
+Production-ready Express + MongoDB API powering the Social Feed application.
 
-## Project Overview
-This API provides:
-- JWT authentication (register/login)
-- Protected feed API
-- Post creation with public/private visibility
-- Like/unlike for posts, comments, and replies
-- Comments and replies inside post documents
-- Swagger docs for all endpoints
+## Live API
+- Base URL: https://social-feed-server.vercel.app/api
+- Health check: https://social-feed-server.vercel.app/api/health
+- Swagger docs: https://social-feed-server.vercel.app/api/docs
 
-Architecture is kept simple and interview-friendly:
-- `routes` -> `controllers` -> `services` -> `models`
-- central error handling
-- request validation with `express-validator`
+## Core Capabilities
+- Authentication:
+  - Register and login with JWT.
+  - Password hashing via bcrypt.
+  - Protected routes via Bearer token middleware.
+- Feed domain:
+  - Create posts with `public` or `private` visibility.
+  - Fetch feed with visibility filtering (`public` + own private posts).
+  - Like/unlike posts, comments, and replies.
+  - Add comments and nested replies.
+- Media:
+  - Upload post images via multipart endpoint.
+  - Cloudinary integration for hosted media URLs.
+- API quality:
+  - Request validation (`express-validator`).
+  - Centralized error handling.
+  - Swagger endpoint documentation.
+  - XSS and Mongo sanitize middleware.
+
+## Architecture
+Layered architecture used for interview clarity and maintainability:
+
+`routes -> controllers -> services -> models`
+
+- Routes: endpoint definition + Swagger annotations.
+- Controllers: request/response orchestration.
+- Services: business rules and data operations.
+- Models: MongoDB schemas and persistence.
 
 ## Tech Stack
 - Node.js
-- Express.js
-- MongoDB Atlas
-- Mongoose
-- JWT
-- bcryptjs
+- Express 5
+- MongoDB Atlas + Mongoose
+- JWT + bcryptjs
+- Multer + Cloudinary
 - Swagger (`swagger-jsdoc`, `swagger-ui-express`)
+- Helmet + CORS + sanitize middleware
 
-## Folder Structure
-- `src/config` DB and Swagger config
-- `src/routes` API route definitions + Swagger annotations
-- `src/controllers` HTTP handlers
-- `src/services` business logic
-- `src/models` Mongoose schemas
-- `src/middleware` auth, validation, error middleware
-- `src/utils` shared helpers
-- `src/validators` request validators
-
-## Setup
-1. Install dependencies:
-   - `npm install`
-2. Copy env values:
-   - `cp .env.example .env`
-3. Run dev server:
-   - `npm run dev`
-4. Run production mode:
-   - `npm start`
+## Project Structure
+```
+api/
+  index.js            Vercel serverless entrypoint
+src/
+  app.js              Express app setup
+  server.js           Local server bootstrap
+  config/             DB, Swagger, Cloudinary
+  controllers/        HTTP handlers
+  middleware/         Auth, upload, validate, error handling
+  models/             Mongoose models
+  routes/             Auth + post APIs
+  services/           Business logic
+  validators/         Request validation rules
+  utils/              Shared utility helpers
+```
 
 ## Environment Variables
-Use `.env`:
-- `PORT=5000`
-- `NODE_ENV=development`
-- `MONGO_URI=your_mongodb_connection_string`
-- `JWT_SECRET=your_strong_secret`
-- `JWT_EXPIRES_IN=7d`
-- `CLIENT_ORIGIN=http://localhost:5173`
-- `API_BASE_URL=http://localhost:5000`
+Create `.env` from `.env.example`:
 
-## API Docs
-Swagger UI:
-- `http://localhost:5000/api/docs`
+```
+PORT=5000
+NODE_ENV=development
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.0nnvi.mongodb.net/socialFeedDB
+JWT_SECRET=replace_with_a_strong_secret
+JWT_EXPIRES_IN=7d
+CLIENT_ORIGIN=http://localhost:5173
+API_BASE_URL=http://localhost:5000
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
 
-## Main Endpoints
+Important:
+- Keep `.env` out of git.
+- Use strong secrets in production.
+- Ensure production values do not contain extra quotes/newlines.
+
+## Run Locally
+1. Install dependencies:
+   - `npm install`
+2. Configure environment:
+   - `cp .env.example .env`
+3. Start in development mode:
+   - `npm run dev`
+4. Start in production mode:
+   - `npm start`
+
+## Scripts
+- `npm run dev` - run with nodemon
+- `npm start` - run server in production mode
+- `npm test` - placeholder (tests not configured yet)
+
+## API Endpoint Summary
+
+Auth:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `GET /api/posts` (protected)
-- `POST /api/posts` (protected)
-- `PATCH /api/posts/:postId/likes` (protected)
-- `POST /api/posts/:postId/comments` (protected)
-- `PATCH /api/posts/:postId/comments/:commentId/likes` (protected)
-- `POST /api/posts/:postId/comments/:commentId/replies` (protected)
-- `PATCH /api/posts/:postId/comments/:commentId/replies/:replyId/likes` (protected)
+
+Posts:
+- `GET /api/posts`
+- `POST /api/posts`
+- `POST /api/posts/upload-image`
+
+Likes / Comments / Replies:
+- `PATCH /api/posts/:postId/likes`
+- `POST /api/posts/:postId/comments`
+- `PATCH /api/posts/:postId/comments/:commentId/likes`
+- `POST /api/posts/:postId/comments/:commentId/replies`
+- `PATCH /api/posts/:postId/comments/:commentId/replies/:replyId/likes`
 
 ## Deployment (Vercel)
-1. Create a Vercel project from backend repo.
-2. Set build command to none and output to none (Node API project).
-3. Add all env vars from `.env.example` in Vercel dashboard.
-4. Ensure MongoDB Atlas allows Vercel IP access.
-5. Set `CLIENT_ORIGIN` to Netlify frontend URL.
+- Serverless entrypoint is configured in `api/index.js` with `vercel.json` routing.
+- Configure all environment variables in Vercel Project Settings.
+- Set `CLIENT_ORIGIN` to frontend URL (for example, `https://socialfeedweb.netlify.app`).
+- Ensure MongoDB Atlas network access allows your deployment traffic.
 
-## Notes
-- Never commit `.env`.
-- The provided database credentials should be rotated before production use.
+## Reliability and Production Notes
+- DB connection helper is serverless-safe and avoids hard process exits.
+- CORS + preflight handling is explicitly covered for browser clients.
+- JWT secret handling is sanitized consistently in sign/verify flow.
+- Cloudinary credentials are sanitized before use to prevent upload failures.
+
+## Known Limitations / Next Improvements
+- Automated unit/integration test suite is not included yet.
+- Rate limiting and brute-force protection can be added for auth endpoints.
+- Structured logs and request tracing can be added for deeper observability.
